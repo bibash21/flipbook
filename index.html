@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Flip Book</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Kalam', cursive;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .book-container {
+            perspective: 2000px;
+            width: min(400px, 90vw);
+            height: min(600px, 80vh);
+            position: relative;
+        }
+
+        .book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-5deg) rotateY(-10deg);  /* Initial slight tilt */
+            transition: transform 0.5s; /* Smooth transition for overall book movement */
+        }
+       /* Styles for responsiveness*/
+
+        .page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: left center;
+            transition: transform 0.5s ease-in-out, z-index 0s linear 0.25s; /*Added z-index */
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 3px;
+            backface-visibility: hidden;
+
+        }
+
+        /* Styling content place, (content page)*/
+
+        .page .front,
+        .page .back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Very Important */
+            transform-style: preserve-3d;
+            background: white;
+            border-radius: 3px;
+            padding: 40px;
+            box-sizing: border-box;/* Make pading correct (responsive) */
+            display: flex;/* Centered correct place. avoid other issues and also avoid writing over another.  */
+            flex-direction: column;
+            justify-content: center;/* center vertical position */
+            align-items: center;/* center horizental. */
+            text-align: center;
+        }
+      .page .back {
+            transform: rotateY(180deg); /*  The back face */
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);  /*Apply when pages flipped*/
+
+        }
+
+         /*Next button */
+         .page-button{
+           position: relative; /* Make the page order with relative set. (Relative display as stack up layer format) */
+           padding:4px 8px;
+           background-color: #2c3e50;
+           color:#ffffff;
+           border:none;
+           border-radius: 4px;
+           font-family: "kalam",cursive;
+           transition:all 0.3s ease;/* Hover change*/
+            /* important value: If content is larger this does not over write other.*/
+           z-index: 2;
+           box-shadow:0 2px 4px rgba(0,0,0,0.2);
+           font-size: 0.9em;
+           cursor:pointer;
+
+         }
+
+        .next-button{
+
+              top: 10px;
+            right: 10px;
+
+
+        }
+        .back-button{
+            top:10px;
+            left:10px;
+
+
+        }
+      /*
+        Button Animation set up with hover event.*/
+      .page-button:hover{
+
+          background-color: #34495e;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+          transform: translateY(-2px);
+
+      }
+
+     .page-content {
+            flex: 1;
+            display: flex;/* display for arrange position and location */
+            flex-direction: column;
+            gap: 20px;/* The gaps will responsive ,no worry*/
+            justify-content: center; /* position (Y ) center correct */
+            align-items: center;    /*center align. position X centered */
+     }
+
+
+/* Styles for button */
+      .page-footer {
+          margin-top: auto;
+          display: flex;
+          justify-content: space-between; /*For avoid any overwrite content and page numbers will correct postion no overlap issue */
+          align-items: center; /* center X axis (Horizontal position set) */
+          position:relative; /* Must set. It's required. make all content will avoid overwrite content or overlapping any content in a container . make all page number align correclty too */
+            width: 100%;/* Required. to avoid width value not set with css(default html ) */
+          z-index:2; /* Avoid overlapping*/
+      }
+
+     .page-num{
+
+         color:#666666;
+         font-size:1.2em;
+         z-index:3; /*For ensure numbers no overwritten by anything, required.  The page number does nt overlap*/
+      }
+
+
+        .image-container {
+            width: 100%;
+            height: 70%;  /*Allow display responsive image container */
+            position: relative;
+            overflow: hidden;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+      /*Styling display with front, it show the element is cover */
+      .cover-content{
+
+          display: flex; /*Important value , apply to avoid over write / over lapping element in correct place(Flex manage those work automatically )*/
+
+          position:absolute;/* Position setting up. with  front content over. */
+
+          /*
+             Location setup for display over current image.
+
+          */
+
+           top:0;
+          left:0;
+
+          /*
+             make correct size ,  image background is fillup correctly (Front Page)
+             */
+            width: 100%; /* Fill entire box */
+           height:100%;/* height fitup(same reason as with 100%). */
+
+
+          /* Content position / centering display and direction set.*/
+          flex-direction: column;
+          justify-content: center;/*Content Center */
+          align-items: center;/* position will X direction,  horizontally position (centering it ).*/
+
+
+           /* Set transparent for visiblity all content (text,button). */
+           background-color: rgba(0, 0, 0, 0.5); /* Transparency: background correct display*/
+            /* Forground */
+            color:white;
+           /*Z - axis*/
+           z-index:1;
+            /* Set */
+           padding:20px;
+            /*  With in box have no issue. avoid default element css(margin default ) effect the box size issue*/
+           box-sizing:border-box; /* Avoid padding/ margin effect the book element size  (This issue make content layout crash ,not responsiveness ).*/
+            text-align: center;
+
+
+      }
+
+
+        /* text for  the h1 in book ,the tittle . */
+
+       .cover-content h1{
+
+           font-size: 2.5em; /* Larger font size for the title */
+           font-family: 'Playfair Display', serif;
+            margin-bottom: 20px;
+
+       }
+     /*
+       Making for responsiveness design  using "media Query" :
+         if screen size over it does not proceed code that within the statement(with max-width ).
+
+         it's avoid conflict layout in different view screen for Mobile / Taplet  make application "responsive" , correct the size auto display different (Taplet / Mobile size/ PC Desktop ) devices
+
+
+          "Media queries" it like  conditional rendering  system
+
+      */
+
+      /* Phone Taplet,   view port apply here , other larger will display the previous css setup(upper setting , without the condition ). */
+
+        @media (max-width: 768px) {
+            .book-container {
+                width: 95vw;/*  The display area :  It will occupy (full screen) display,  only leave very little gaps in current device */
+                height: 85vh; /* height view with window height, not all full height */
+            }
+              /*padding make correct size without worry crash any element each others , responsive correct direction */
+            .page .front,
+            .page .back {
+                padding: 20px;  /*  Padding apply avoid conflict when user have smaller screens  */
+            }
+
+            .cover-content h1 {
+                font-size: 2em;
+            }
+
+            .page-button{
+                font-size:0.9em;/* size adjust. avoiding element bigger*/
+               padding:4px 8px;
+
+            }
+
+        }
+
+
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="book-container">
+            <div class="book" id="book">
+                <!-- Pages will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const book = document.getElementById('book');
+
+            // Generate pages
+            const totalPages = 15;
+            const pages = [];
+
+            // Create front cover (page 0)
+            const frontCover = document.createElement('div');
+            frontCover.className = 'page';
+            frontCover.innerHTML = `
+            <div class="front">
+                <img src="/1.png" alt="Book Cover" style="width:100%; height:100%; object-fit:cover;">
+                <div class="cover-content">
+                    <h1>Journey Through Time</h1>
+                    <p>An Interactive Adventure</p>
+                    <button class="page-button next-button" data-target-page="1">Open</button>
+                </div>
+            </div>
+            <div class="back">
+                <div class="page-content">
+                    <h2>About This Journey</h2>
+                    <p>Prepare to embark on an extraordinary adventure through time and space...</p>
+                </div>
+                <div class="page-footer">
+                     <div class="page-num">2</div>
+                     <button class="page-button back-button" data-target-page="0">Back</button>
+                </div>
+            </div>
+            `;
+            pages.push(frontCover);
+
+
+            // Create content pages (pages 1 to 13)
+            for (let i = 1; i < totalPages - 1; i++) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `
+                <div class="front">
+                    <div class="page-content">
+                        <h2>Chapter ${i}</h2>
+                        <p>Discover the wonders of page ${i + 1}...</p>
+                    </div>
+                    <div class="page-footer">
+                        <button class="page-button next-button" data-target-page="${i + 1}">Next</button>
+                        <div class="page-num">${i * 2 + 1}</div>
+                    </div>
+                </div>
+                <div class="back">
+                    <div class="image-container">
+                        <img src="/api/placeholder/400/600?text=Scene${i}" alt="Scene ${i}">
+                    </div>
+                     <div class="page-footer">
+                         <button class="page-button back-button" data-target-page="${i - 1}">Back</button>
+                         <div class="page-num">${i * 2 + 2}</div>
+                    </div>
+                </div>
+                `;
+                pages.push(page);
+            }
+
+            // Create back cover (page 14)
+            const backCover = document.createElement('div');
+            backCover.className = 'page';
+            backCover.innerHTML = `
+                <div class="front">
+                    <div class="page-content">
+                        <h2>The End</h2>
+                        <p>Thank you for joining this adventure...</p>
+                    </div>
+                    <div class="page-footer">
+                        <div class="page-num">${totalPages * 2}</div>
+                         <button class="page-button next-button" data-target-page="${totalPages - 2}">Next</button>
+                    </div>
+                </div>
+                <div class="back">
+                    <div class="cover-content">
+                        <button class="page-button back-button" data-target-page="${totalPages - 2}">Back</button>
+                        <p>© 2024 All Rights Reserved</p>
+                    </div>
+                </div>
+            `;
+            pages.push(backCover);
+
+            // Add pages to book. Order pages .  z index.
+            pages.forEach((page, index) => {
+
+                page.style.zIndex = totalPages - index;  /* Page order. display with correctly.  (avoid missing page hide issues, display correclty)  */
+                book.appendChild(page); /* Page added on book */
+            });
+
+             //  Store currerntPage data
+            let currentPage = 0; /*  Default is display the front of cover (index is o), after filp increase page index. (The page show here mean visible with customer eye ) */
+             let isAnimating = false;   /* Variable for check any flip processing running , user do animation. preventing any bug while pages is flip, flip does not stop between flip processing , this can create animation issues. make user  feel is good using(responsive good , better using). avoid confuesd user with book navigation using buttons  */
+
+
+
+        // Flipping processing animation work correcly
+        /* function of control how pages order. also how display between next, and back (when turn over it show correclty, no flashing happen between. making   transition for user better */
+          function updatePages(){
+
+              pages.forEach((page,index)=>{
+                 // Set to next Page. order to nex index for page is 1 unit larger than  original
+
+                  if(index < currentPage){
+
+                    page.classList.add("flipped");   /*  flipped it will show filp class, with page content css define flip function  using z-index  */
+
+
+                 }
+                 else{
+
+
+                   page.classList.remove("flipped");
+
+                   /* page Z value . it should fliped if not flipped remove previous, prevent the effect (flipped) work over new setting(Z value is incorret set order) .*/
+
+                 }
+                  /*z index, control page transition (next/ backward)
+
+                    Z axis important for this 3D transition  for visual transition make correct
+
+                 */
+                 page.style.zIndex = totalPages- Math.abs(index- currentPage) ;
+
+             });
+
+          }
+         /* Function  flip processing here . it check target number and compare currenct Page is going correct flip page (page turning logic ). */
+          function flipPage(targetPage) {
+            if(isAnimating) return;
+             //Avoid rapid clicking issues that crash display flip page function.
+            if(targetPage < 0 || targetPage >= pages.length)return ; /* checking  is valid target exist (page does not bigger or  invalid input value).*/
+
+
+               isAnimating = true ;    //Lock . to prevent another new action make incorrect animation.
+                const direction = targetPage > currentPage?1:-1; // Check  go back  or next . it means how is  turnning for (Back button (-),or   Next Button (+) ).  It control  go left/ right.    the result is positive(going to   next),  otherwise  going prevous (- direction )   if equal it false mean page have nothing  no required action change (animation no happen for transition ).
+
+                 //Important. when pages update  new order will have some order  incorrect issue
+                pages.forEach(page=>{
+
+                   page.style.backfaceVisibility='hidden'; /*   hide it during animate change new page   visiblity correct, make  page turn correct place  and avoid display page (overlap issue ,   "Z index: (with Z position not change will display on new page incorrectly position )
+
+                   make Z order  display make visble . avoid conflict layout issue if there Z index  and Z have larger  will always upper correct value,
+                    This function it avoid page "jump order".
+
+                   avoid content show / display wrong place ,   transition better without flash error
+
+                    also required visiblity (hidden and back  turnning visible is correclty when user have next ,  not always hide when click other. make transition display correclty)
+
+                */
+
+
+
+                 })
+
+               if(direction===1)  {  //Flipping Forward: Go next target. means forward direction , the position compare is increase
+
+
+
+                    setTimeout(() => {
+
+                        pages[currentPage].classList.add('flipped'); // Apply change with new setting to
+                       // Page Update set .  (Important.)   If do next step set first before class updated, it may conflict in correct process when backword action, the
+                          currentPage = targetPage;    //Update . avoid any overlap current with any action before.
+
+                         updatePages();      /*zindex: ( order correct after the transition make effect for "flipping" pages). after page add flipped(turning pages, order change happen for   other waiting que   pages.)  avoid display incorrect location page after click many times next and back */
+
+                      }, 0)
+                    //2.  When timer run, start animation display (backgroud-color is apply )
+
+
+
+                   setTimeout(() => { //  Prevent double clik and keep any other   events not  happen (next/ back) make filpped issue and keep page will transition not finish keep click ,  double / multi flip   time effect same moment for flip processing. avoid conflict and transition correct (one by one change )
+
+                      book.classList.remove("flipping");  //Removed filpping order for prevous page avoid conflict.
+                      isAnimating =false ;// Make function can procees when user going change page (unlock variable and making next new variable can work again, keep single progress processing. avoid other animation affect to any un complete action that crash page layout )
+
+
+                  },500);
+                      /* make background visiblity correct . it's set here before add to change new (waiting)filpping page*/
+                   book.classList.add('flipping')// set it when process start for background (current, before fliip the display make this transition display )
+
+
+
+               }
+               // Else, If backward flip here.(for any not increase number direction input and not equal mean other.)
+
+            else{
+
+                     // Change filp page content order / and direction and set it to previous
+                      //update page Style going backward  with z value change with order  new flip
+
+                       setTimeout(() => {
+
+                           if (pages[currentPage] !== undefined) { //Avoid page value undefined error affect next. prevent application  crashed (e.g current no pages before user make undefined page action )
+                            // Set the new Z value when backworkd   to prevous value set
+
+                            pages[currentPage].classList.remove("flipped");
+                             /*Removed prevous flipp class*/
+
+                           }
+                              currentPage= targetPage;//set for   prevous set value, correct when go any page(Backward click), back to prevous data
+
+                       },0);/*   make page removed from filpped avoid previous display make the content over the back page layout. . avoid incorrect content location , after user fliped go backward flip happen in a timer and remove the layout in order time, then Z index  (filp direction /order )   can apply and do with action flip*/
+
+
+                     setTimeout(() => {  updatePages();    /*apply when removed flip, start re-build to any back filp animation. update is correct with number in target number to previou page number . it will display correcly in page filp transition display */
+
+                    }, 0);/*Make flip process for each change*/
+
+
+                   //make transition back order  for next pages after move prevous order backword   , avoid any conflict issue
+
+
+                    setTimeout(() => {
+                         book.classList.remove('flipping');   //reset   animate
+                         isAnimating = false;// Lock for multi order
+                       }, 500);
+
+                    setTimeout(() => { //Re-visibility . Avoid overlap/ incorrect layer visbility.
+
+                           pages.forEach(page=>{page.style.backfaceVisibility='visible' });// Avoid visiblity backface crash for display  new order pages (when have other page, new z axis change  visiblity required . after set up back the  flip, Zindex require visibity for correct transition correct position for layout )
+
+                   },500);/* transition time correct after filip set  with  next , to display current back face, if current filpped will show on next, correct content place when turn correct visbility correct , visblity to   previous. correct display layout avoid show behind (back) face page on top when backward page turning. make  image and number  display correct Z order.
+
+                          correct "visual flip effect"
+
+                      (Note, timer should same and align  set each.
+                         avoid the timing not alignment (previous have  completed   for back action  not happen). make layout crashed if next work time  faster but prevous remove flipped have not completed. correct timer when remove flipp before back new setting flip visiblity.
+
+                          It's timing problem(animation)
+
+                         It avoid incorrect flipping for backward
+
+                     */
+                   book.classList.add("flipping");  //show current back display when filp set
+
+             }
+
+
+          }
+          /* Click: (Button action: Go next or go backward) */
+           document.addEventListener("click",(e)=>{
+
+                 let target = e.target; // find clicked button
+
+
+                /*If user clicked the page filp. processing animation filp start */
+                 if(target.classList.contains('page-button'))
+                {
+                     let targetPage=parseInt(target.dataset.targetPage,10); /*find page button , detect targer number */
+
+                      if(!isNaN(targetPage)){ /*prevent  wrong data affect code , keep integer number valid number to page flip display change  (target Page), make   correct order on button ,correct data*/
+                      flipPage(targetPage);
+
+                      }
+
+
+
+                  }
+
+              });
+
+           /* Phone Tablet / user using (Touch  Screen  ) Flip Event : Detect left/ right*/
+
+
+              let touchStartX = 0 ;  // Detect touch on Touch device and handle
+             /* function for touch flip animation correct and how user filp for swipe(drag )   order on left,  or right  . start listen */
+              book.addEventListener('touchstart',(e)=>{  //Add on  "book": cover container listen   (Not just with button click , it should add on content to prevent bug for listen, and correct listen, otherwise swipe function is wrong )
+                        // Event Listenr :    Start and End  required each for swipe(Drag event): make any action to  left ,   go prevois (index smaller order. go left-right).    swipe right(move for   next) .   position to drag, to target that index in correct larger or diff for correct order.
+
+
+                   touchStartX=   e.touches[0].clientX;// Get position X
+
+
+             }, { passive: true });  // For better performance. user action can prevent or continue when system work correctly
+
+              book.addEventListener("touchend",(e)=>{     //Check if action finger(left up to  the screen ). detect "Swipe" left or right  after. make a   page change .      Drag /     Swipe end Event listener trigger  happen after this
+                    // Event:Touch End    trigger event "change flip page number "
+                    const  touchEndX=e.changedTouches[0].clientX;//    X data end, get client
+                  const   diff =  touchStartX- touchEndX ; // Diff value get for result (if left/right drag): Left value larger
+                    /*Check the Drag distance make sure for correct work in book container ,no conflict content  also prevent  drag too smaller / not swipe,   for better use in book.
+                    Avoid user make not filp / and avoid any wrong position not change (avoid too near flip to change the layout if distance too small make error page not flip.)   and distance drag require to prevous/ forward order correct target (distance ) flip page.  flip drag right go  page is forword
+
+                 */
+
+                  if(Math.abs(diff)> 50 ){  //require 50px for flip. Avoid other near button  element do error/ avoid filp button not click for mistake(for make navigation not confusing using on book )
+
+                          let targetPage  =   diff>0? currentPage+1:currentPage-1 ;
+                        flipPage(targetPage);/*Target for prevoiuse*/
+
+
+                 }
+
+                //  Update Page display. and transition(update new)
+
+
+             },{passive:true}); //make prevent performance for this action affect layout
+
+
+          //   Listen and support on Arrow Left and right key filp to next  prevous function flip. make easier navigate .  make the book more functionality
+         /*For Keyboard:   Using Left, Right for turning back   or previous*/
+
+         document.addEventListener("keydown",(e)=>{
+
+
+
+          if(e.key==="ArrowRight" || e.key===" "){     //Go page next
+
+               flipPage(currentPage + 1);
+
+           }else if (e.key==="ArrowLeft"){     //Previou pages (previous go prevous)
+
+
+             flipPage(currentPage - 1);    //Go prevous data to correct direction number in a list order.   and filp it, (Page previous order)
+
+             }
+
+             } )
+
+
+
+
+            updatePages();  /* Set initial . make flip action can update on  page correcly when   pages filpped */
+        });
+
+
+    </script>
+</body>
+
+</html>
